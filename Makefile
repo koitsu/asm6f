@@ -1,19 +1,41 @@
-# cobbled together really fast
-CC = gcc
+# Usage:
+# make                 same as make build=safe
+# make build=safe      general-purpose build, minimal warnings
+# make build=debug     debug symbol build, extreme warnings
+# make build=release   optimized release build
 
-# no matter how hard I try, I can't get make to accept that I'm on windows.
+build=safe
+
+cflags.safe=-Wall -Werror
+cflags.release=-Wall -Werror -O2 -s
+
+# -Wno-unused-parameter required due to some functions in directives[]
+# not making use of their function arguments
+#
+cflags.debug=-Wall -Werror -g3 -Wextra -Wformat=2 -Wno-unused-parameter -Wbad-function-cast -Wcast-align -Wdeclaration-after-statement -Wdisabled-optimization -Wfloat-equal -Winline -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wold-style-definition -Wpacked -Wpointer-arith -Wredundant-decls -Wstrict-prototypes -Wunreachable-code -Wwrite-strings
+
+# Detect use of gmake.exe on Windows
 ifneq ($(shell echo),)
-  DOTEXE=.exe
+  BINARY=asm6f.exe
+  RM=del /Q
+else
+  BINARY=asm6f
 endif
 
-.PHONY: all clean
+SRC=asm6f.c
 
-all: safe
+CFLAGS=$(cflags.$(build))
 
-safe:
-	$(CC) -Wall asm6f.c -o asm6f
+ifeq ($(CFLAGS),)
+$(error Invalid build value. Valid choices are safe, debug, release.)
+endif
 
-# sorry to linux people for forcing .exe but I can't get this makefile to determine
-# that I'm really on windows
+all: $(BINARY)
+
+$(BINARY): $(SRC)
+	$(CC) $(CFLAGS) -o $@ $<
+
 clean:
-	$(RM) asm6f$(DOTEXE) *.exe
+	-$(RM) $(BINARY)
+
+.PHONY: all clean
