@@ -169,6 +169,19 @@ xaa (X And A) HIGHLY UNSTABLE!!!
 lax is currently not supported.
 
 --------------------------------------------------------------
+Assembler directive clarifications
+--------------------------------------------------------------
+
+INCBIN/BIN
+
+        Filenames can be double-quoted, permitting names that contain
+        spaces, ex.
+
+                INCBIN "some file.bin"
+                INCBIN "some file.bin", $400
+                INCBIN "some file.bin", $200, $2000
+
+--------------------------------------------------------------
 Additional assembler directives
 --------------------------------------------------------------
 
