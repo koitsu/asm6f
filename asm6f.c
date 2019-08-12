@@ -1158,7 +1158,7 @@ void export_labelfiles() {
 	int i;
 	int bank;
 	label *l;
-	char str[512];
+	char str[LINEMAX];
 	char filename[512];
 	FILE* bankfiles[64];
 	FILE* ramfile;
@@ -1201,7 +1201,7 @@ void export_labelfiles() {
 			)
 				&& (*l).value < 0x10000
 		){
-			sprintf(str,"$%04X#%s#\n",(unsigned int)(*l).value,(*l).name);
+			snprintf(str,LINEMAX,"$%04X#%s#\n",(unsigned int)(*l).value,(*l).name);
 			// puts(str);
 
 			if((*l).value < 0x8000){
@@ -1212,7 +1212,7 @@ void export_labelfiles() {
 				// ROM
 				bank=(((*l).pos - 16)/16384);
 				if (!bankfiles[bank]){
-					sprintf(strptr,".nes.%X.nl",bank);
+					snprintf(strptr,LINEMAX,".nes.%X.nl",bank);
 					bankfiles[bank]=fopen(filename,"w");
 				}
 				fwrite((const void *)str,1,strlen(str),bankfiles[bank]);
@@ -1233,7 +1233,7 @@ void export_lua() {
 
 	int i;
 	label *l;
-	char str[512];
+	char str[LINEMAX];
 	char filename[512];
 	FILE* mainfile;
 	char *strptr;
@@ -1258,7 +1258,7 @@ void export_lua() {
 				&& (*l).name[0] != '-'
 				&& (*l).name[0] != '+'
 		){
-			sprintf(str,"%s = 0x%04X\n",(*l).name,(unsigned int)(*l).value);
+			snprintf(str,LINEMAX,"%s = 0x%04X\n",(*l).name,(unsigned int)(*l).value);
 			fwrite((const void *)str,1,strlen(str),mainfile);
 		}
 	}
@@ -1294,7 +1294,7 @@ void export_mesenlabels() {
 	int i;
 	char* commenttext;
 	label *l;
-	char str[512];
+	char str[LINEMAX];
 	char filename[512];
 	char *strptr;
 	FILE* outfile;
@@ -1336,7 +1336,7 @@ void export_mesenlabels() {
 				if(c->pos < l->pos) {
 					//This comment is for a line before the current code label, write it to the file right away
 					if(c->pos >= 16) {
-						sprintf(str, "P:%04X::", (unsigned int)c->pos - 16);
+						snprintf(str, LINEMAX, "P:%04X::", (unsigned int)c->pos - 16);
 						fwrite((const void *)str, 1, strlen(str), outfile);
 						fwrite((const void *)c->text, 1, strlen(c->text), outfile);
 						fwrite("\n", 1, 1, outfile);
@@ -1353,7 +1353,7 @@ void export_mesenlabels() {
 			}
 
 			//Dump the label
-			sprintf(str, "P:%04X:%s", (unsigned int)(l->pos - 16), l->name);
+			snprintf(str, LINEMAX, "P:%04X:%s", (unsigned int)(l->pos - 16), l->name);
 			fwrite((const void *)str, 1, strlen(str), outfile);
 
 			if(commenttext) {
@@ -1365,14 +1365,14 @@ void export_mesenlabels() {
 			//These are potentially aliases for variables in RAM, or read/write registers, etc.
 			if(l->value < 0x2000) {
 				//Assume nes internal RAM below $2000 (2kb)
-				sprintf(str, "R:%04X:%s\n", (unsigned int)l->value, l->name);
+				snprintf(str, LINEMAX, "R:%04X:%s\n", (unsigned int)l->value, l->name);
 			} else if(l->value >= 0x6000 && l->value < 0x8000) {
 				//Assume save/work RAM ($6000-$7FFF), dump as both. (not the best solution - maybe an option?)
-				sprintf(str, "S:%04X:%s\n", (unsigned int)l->value - 0x6000, l->name);
-				sprintf(str, "W:%04X:%s\n", (unsigned int)l->value - 0x6000, l->name);
+				snprintf(str, LINEMAX, "S:%04X:%s\n", (unsigned int)l->value - 0x6000, l->name);
+				snprintf(str, LINEMAX, "W:%04X:%s\n", (unsigned int)l->value - 0x6000, l->name);
 			} else {
 				//Assume a global register for everything else (e.g $8000 for mapper control, etc.)
-				sprintf(str, "G:%04X:%s\n", (unsigned int)l->value, l->name);
+				snprintf(str, LINEMAX, "G:%04X:%s\n", (unsigned int)l->value, l->name);
 			}
 			fwrite((const void *)str, 1, strlen(str), outfile);
 		}
@@ -2632,7 +2632,7 @@ void macro(label *id, char **next) {
 //errsrc=source file name
 void expandmacro(label *id,char **next,int errline,char *errsrc) {
 	//char argname[8];
-	char macroerr[WORDMAX*2];//this should be enough, i hope..
+	char macroerr[LINEMAX];//this should be enough, i hope..
 	char **line;
 	int linecount=0;
 	int oldscope;
@@ -2648,7 +2648,7 @@ void expandmacro(label *id,char **next,int errline,char *errsrc) {
 	scope=nextscope++;
 	insidemacro++;
 	(*id).used=1;
-	sprintf(macroerr,"%s(%i):%s",errsrc,errline,(*id).name);
+	snprintf(macroerr,LINEMAX,"%s(%i):%s",errsrc,errline,(*id).name);
 	line=(char**)((*id).line);
 
 	//define macro params
@@ -2719,7 +2719,7 @@ void rept(label *id, char **next) {
 }
 
 void expandrept(int errline,char *errsrc) {
-	char macroerr[WORDMAX*2];//source to show in listing (this should be enough, i hope?)
+	char macroerr[LINEMAX];//source to show in listing (this should be enough, i hope?)
 	char **start,**line;
 	int linecount;
 	int i,oldscope;
@@ -2730,7 +2730,7 @@ void expandrept(int errline,char *errsrc) {
 	for(i=rept_loops;i;--i) {
 		linecount=0;
 		scope=nextscope++;
-		sprintf(macroerr,"%s(%i):REPT",errsrc,errline);
+		snprintf(macroerr,LINEMAX,"%s(%i):REPT",errsrc,errline);
 		line=start;
 		while(line) {
 			linecount++;
