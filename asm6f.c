@@ -40,7 +40,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <ctype.h>
-#include <stdarg.h>
 
 #define VERSION "1.6"
 
@@ -139,6 +138,11 @@ void nes2tv(label*, char**);
 void nes2vs(label*, char**);
 void nes2bram(label*, char**);
 void nes2chrbram(label*, char**);
+
+#define fatal_error(fmt, args...) { fprintf(stderr, fmt, ## args); DIE(); }
+#define message(fmt, args...) if (verbose) { printf(fmt, ## args); }
+
+void DIE(void);
 
 label *findlabel(const char*);
 void initlabels(void);
@@ -533,35 +537,15 @@ static void* ptr_from_bool( int b )
 	return NULL;
 }
 
-// Prints printf-style message to stderr, then exits.
 // Closes and deletes output file.
-static void fatal_error( const char fmt [], ... )
-{
-	va_list args;
-
+// Commonly used alongside fatal_error() macro.
+void DIE(void) {
 	if ( outputfile != NULL ) {
 		fclose( outputfile );
 		remove( outputfilename );
 	}
 
-	va_start( args, fmt );
-	fprintf( stderr, "\nError: " );
-	vfprintf( stderr, fmt, args );
-	fprintf( stderr, "\n\n" );
-	va_end( args );
-
 	exit( EXIT_FAILURE );
-}
-
-// Prints printf-style message if verbose mode is enabled.
-static void message( const char fmt [], ... )
-{
-	if ( verbose ) {
-		va_list args;
-		va_start( args, fmt );
-		vprintf( fmt, args );
-		va_end( args );
-	}
 }
 
 // Same as malloc(), but prints error and exits if allocation fails
@@ -569,7 +553,7 @@ static char* my_malloc( size_t s )
 {
 	char* p = malloc( s ? s : 1 );
 	if ( p == NULL )
-		fatal_error( "out of memory" );
+		fatal_error( "\nError: out of memory\n\n" );
 
 	return p;
 }
@@ -1897,7 +1881,7 @@ int main(int argc,char **argv) {
 					genlua=1;
 					break;
 				default:
-					fatal_error("unknown option: %s",argv[i]);
+					fatal_error("\nError: unknown option: %s\n\n",argv[i]);
 			}
 		} else {
 			if(notoption==0)
@@ -1907,12 +1891,12 @@ int main(int argc,char **argv) {
 			else if(notoption==2)
 				listfilename=argv[i];
 			else
-				fatal_error("unused argument: %s",argv[i]);
+				fatal_error("\nError: unused argument: %s\n\n",argv[i]);
 			notoption++;
 		}
 	}
 	if(!inputfilename)
-		fatal_error("No source file specified.");
+		fatal_error("\nError: No source file specified.\n\n");
 
 	strcpy(str,inputfilename);
 	nameptr=strrchr(str,'.');//nameptr='.' ptr
@@ -1953,10 +1937,11 @@ int main(int argc,char **argv) {
 		pass++;
 		if(pass==MAXPASSES || (p==lastlabel))
 			lastchance=1;//give up on too many tries or no progress made
-		if(lastchance)
+		if(lastchance) {
 			message("last try..\n");
-		else
+		} else {
 			message("pass %i..\n",pass);
+		}
 		needanotherpass=0;
 		skipline[0]=0;
 		scope=1;
@@ -1977,14 +1962,14 @@ int main(int argc,char **argv) {
 		// Be sure last of output file is written properly
 		int result;
 		if ( fwrite(outputbuff,1,outcount,outputfile) < (size_t)outcount || fflush( outputfile ) )
-			fatal_error( "Write error." );
+			fatal_error( "\nError: Write error.\n\n" );
 
 		i=ftell(outputfile);
 
 		result = fclose(outputfile);
 		outputfile = NULL; // prevent fatal_error() from trying to close file again
 		if ( result )
-			fatal_error( "Write error." );
+			fatal_error( "\nError: Write error.\n\n" );
 
 		if(!error) {
 			message("%s written (%i bytes).\n",outputfilename,i);
@@ -2441,14 +2426,14 @@ void opcode(label *id, char **next) {
 	if (!allowunstable) {
 		for(uns=0;uns<4;uns++) {
 			if (!strcmp(id->name, unstablelist[uns])) {
-				fatal_error("Unstable instruction \"%s\" used without calling UNSTABLE.",id->name);
+				fatal_error("\nError: Unstable instruction \"%s\" used without calling UNSTABLE.\n\n",id->name);
 			}
 		}
 	}
 
 	if (!allowhunstable) {
 		if (!strcmp(id->name, "XAA")) {
-			fatal_error("Highly unstable instruction \"%s\" used without calling HUNSTABLE.",id->name);
+			fatal_error("\nError: Highly unstable instruction \"%s\" used without calling HUNSTABLE.\n\n",id->name);
 		}
 	}
 
