@@ -305,7 +305,7 @@ byte tas[]={0x9b,ABSY,-1};
 // "highly unstable (results are not predictable on some machines)":
 byte xaa[]={0x8b,IMM,-1};
 //byte lax[]={0xab,IMM,-1};
- 
+
 void *rsvdlist[]={	   //all reserved words
 		"BRK",brk,
 		"PHP",php,
@@ -1135,7 +1135,7 @@ int eatchar(char **str,char c) {
 		if(**str==c) {
 			(*str)++;
 			return 1;
-		} else 
+		} else
 			return 0;
 	}
 	return 1;
@@ -1194,7 +1194,7 @@ void export_labelfiles() {
 		if((*l).ignorenl)
 			continue;
 
-		if( 
+		if(
 			(
 				(*l).type==LABEL ||
 				(((*l).type==EQUATE || (*l).type==VALUE) && strlen((*l).name) > 1)
@@ -1249,7 +1249,7 @@ void export_lua() {
 	for(i=labelstart;i<=labelend;i++){
 		l=labellist[i];
 
-		if( 
+		if(
 			(
 				(*l).type==LABEL ||
 				(((*l).type==EQUATE || (*l).type==VALUE) && strlen((*l).name) > 1)
@@ -1665,7 +1665,7 @@ void processfile(FILE *f, char* name) {
 	nest++;//count nested include()s
 	do {
 		nline++;
-		eof=!fgets(fileline,LINEMAX,f);		 
+		eof=!fgets(fileline,LINEMAX,f);
 		if(!eof)
 			processline(fileline,name,nline);
 	} while(!eof);
@@ -1911,7 +1911,7 @@ int main(int argc,char **argv) {
 			notoption++;
 		}
 	}
-	if(!inputfilename) 
+	if(!inputfilename)
 		fatal_error("No source file specified.");
 
 	strcpy(str,inputfilename);
@@ -2435,7 +2435,7 @@ void opcode(label *id, char **next) {
 	byte *op;
 	int oldstate=needanotherpass;
 	int forceRel = 0;
-    
+
 	int uns;
 	if (!allowunstable) {
 		for(uns=0;uns<4;uns++) {
@@ -2672,7 +2672,7 @@ void expandmacro(label *id,char **next,int errline,char *errsrc) {
 			c=*s3;
 		}
 		s2=s3;
-		*s2=0;		  
+		*s2=0;
 		if(*s) {//arg not empty
 		//  sprintf(argname,"\\%i",arg);		//make indexed arg
 		//  addlabel(argname,1);
@@ -2895,7 +2895,7 @@ void nes2vs(label *id, char **next) {
 	ines_include++; use_nes2 = 1;
 }
 
-void nes2bram(label *id, char **next) { 
+void nes2bram(label *id, char **next) {
 	nes2bram_num=eval(next, WHOLEEXP);
 
 	if (nes2bram_num < 0 || nes2bram_num > 16)
