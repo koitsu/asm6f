@@ -142,9 +142,6 @@ void nes2chrbram(label*, char**);
 #define fatal_error(fmt, args...) { fprintf(stderr, fmt, ## args); DIE(); }
 #define message(fmt, args...) if (verbose) { printf(fmt, ## args); }
 
-void DIE(void);
-void *my_malloc(size_t);
-
 label *findlabel(const char*);
 void initlabels(void);
 label *newlabel(void);
@@ -194,6 +191,8 @@ void expandrept(int,char*);
 void make_error(label*,char**);
 void unstable(label*,char**);
 void hunstable(label*,char**);
+void DIE(void);
+void *my_malloc(size_t);
 char *my_strupr(char*);
 int hexify(int);
 char *strend(char*,char*);
