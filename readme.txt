@@ -265,6 +265,22 @@ NES2CHRBRAM x
         Amount of battery-packed CHR RAM in NES ROM.
 
 --------------------------------------------------------------
+Building instructions
+--------------------------------------------------------------
+* Requires GNU make (read: BSD make will not work)
+* Requires gcc 5.x or clang/llvm
+
+Use `make` to build the resulting asm6f or asm6f.exe binary.
+There are additional flags you can pass via a `build` argument:
+
+```
+make                 same as make build=safe
+make build=safe      general-purpose build, minimal warnings
+make build=debug     debug symbol build, extreme warnings
+make build=release   optimized release build
+```
+
+--------------------------------------------------------------
 loopy's original To-Do List
 --------------------------------------------------------------
 //todo - do NOT open source files in update mode, since we do not want to modify them in any way
