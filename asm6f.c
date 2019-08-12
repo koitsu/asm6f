@@ -140,7 +140,7 @@ void nes2vs(label*, char**);
 void nes2bram(label*, char**);
 void nes2chrbram(label*, char**);
 
-label *findlabel(char*);
+label *findlabel(const char*);
 void initlabels(void);
 label *newlabel(void);
 void getword(char*,char**,int);
@@ -218,7 +218,7 @@ int filepos=0;
 enum optypes {ACC,IMM,IND,INDX,INDY,ZPX,ZPY,ABSX,ABSY,ZP,ABS,REL,IMP};
 int opsize[]={0,1,2,1,1,1,1,2,2,1,2,1,0};
 char ophead[]={0,'#','(','(','(',0,0,0,0,0,0,0,0};
-char *optail[]={"A","",")",",X)","),Y",",X",",Y",",X",",Y","","","",""};
+const char *optail[]={"A","",")",",X)","),Y",",X",",Y",",X",",Y","","","",""};
 byte brk[]={0x00,IMM,0x00,ZP,0x00,IMP,-1};
 byte ora[]={0x09,IMM,0x01,INDX,0x11,INDY,0x15,ZPX,0x1d,ABSX,0x19,ABSY,0x05,ZP,0x0d,ABS,-1};
 byte asl[]={0x0a,ACC,0x16,ZPX,0x1e,ABSX,0x06,ZP,0x0e,ABS,0x0a,IMP,-1};
@@ -306,7 +306,7 @@ byte tas[]={0x9b,ABSY,-1};
 byte xaa[]={0x8b,IMM,-1};
 //byte lax[]={0xab,IMM,-1};
 
-void *rsvdlist[]={	   //all reserved words
+const void *rsvdlist[]={	   //all reserved words
 		"BRK",brk,
 		"PHP",php,
 		"BPL",bpl,
@@ -392,12 +392,12 @@ void *rsvdlist[]={	   //all reserved words
 		0, 0
 };
 
-char *unstablelist[]={
+const char *unstablelist[]={
 	"AHX", "SHY", "SHX", "TAS"
 };
 
 struct {
-	char* name;
+	const char* name;
 	void (*func)( label*, char** );
 } directives[]={
 		{"",nothing},
@@ -1459,7 +1459,7 @@ void initlabels(void) {
 		p=newlabel();
 		p->name=rsvdlist[i];
 		p->value=(ptrdiff_t)opcode;
-		p->line=rsvdlist[i+1];
+		p->line=(void*)rsvdlist[i+1];
 		p->type=RESERVED;
 		i+=2;
 	} while(rsvdlist[i]);
@@ -1540,7 +1540,7 @@ void addcomment(char* text) {
 //don't call if list is empty!
 int findcmp;		//(these are used by newlabel)
 int findindex;	  //.
-label *findlabel(char *name) {
+label *findlabel(const char *name) {
 	int head,tail;
 	label *p, *global;
 
@@ -2430,7 +2430,8 @@ void org(label *id, char **next) {
 }
 
 void opcode(label *id, char **next) {
-	char *s,*s2;
+	char *s;
+	const char *s2;
 	int type,val = 0;
 	byte *op;
 	int oldstate=needanotherpass;
